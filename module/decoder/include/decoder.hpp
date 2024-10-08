@@ -5,6 +5,7 @@
 
 #include <string>
 #include <vector>
+#include <map>
 
 #include "module/instruction/include/instruction.hpp"
 
@@ -15,7 +16,7 @@ uint32_t DecodeRegister(const std::string& reg);
 
 uint32_t DecodeImmediate(const std::string& imm, uint32_t size_bits);
 
-uint32_t DecodeInstruction(const std::vector<std::string>& instruction_elements);
+uint32_t DecodeInstruction(const std::vector<std::string>& instruction_elements, const std::map<uint32_t, std::string>& program_labels);
 
 }  // namespace decoder
 }  // namespace simas

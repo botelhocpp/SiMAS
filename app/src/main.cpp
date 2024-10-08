@@ -18,7 +18,8 @@ constexpr int kTooMuchParametersErrorCode = 1;
 constexpr int kNoInputFileErrorCode = 2;
 constexpr int kInputFileNotFoundErrorCode = 3;
 constexpr int kInvalidInputFileExtensionErrorCode = 4;
-constexpr int kParsingErrorCode = 5;
+constexpr int kInvalidOptionCode = 5;
+constexpr int kParsingErrorCode = 6;
 constexpr int kMinNumberParameters = 1;
 constexpr int kMaxNumberParameters = 4;
 
@@ -67,10 +68,10 @@ int main(int argc, char *argv[]) {
         } else {
           fprintf(stderr, "Unknown option character `\\x%x'.\n", optopt);
         }
-        return 1;
+        return kInvalidOptionCode;
       default:
         fprintf(stderr, "Usage: %s <input_file> [-o <output_file>] [-p]\n", argv[0]);
-        return 1;
+        return kInvalidOptionCode;
     }
   }
 
