@@ -1,4 +1,4 @@
-# SiMAS (Simple MIPS Assembler) v1.0.0
+# SiMAS (Simple MIPS Assembler) v2
 ## A simple assembler made for the MIPS-SC 32-bit CPU to translate assembly code to binary code.
 
 <p align="center">
