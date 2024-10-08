@@ -1,0 +1,93 @@
+// Copyright (c) 2024 SiMAS
+// All rights reserved
+
+#include <unistd.h>
+
+#include <fstream>
+#include <iostream>
+#include <stdexcept>
+#include <string>
+
+#include "module/decoder/include/decoder.hpp"
+#include "module/instruction/include/instruction.hpp"
+#include "module/parser/include/parser.hpp"
+#include "module/parser/include/parser_exception.hpp"
+
+constexpr int kSucessCode = 0;
+constexpr int kTooMuchParametersErrorCode = 1;
+constexpr int kNoInputFileErrorCode = 2;
+constexpr int kInputFileNotFoundErrorCode = 3;
+constexpr int kInvalidInputFileExtensionErrorCode = 4;
+constexpr int kParsingErrorCode = 5;
+constexpr int kMinNumberParameters = 1;
+constexpr int kMaxNumberParameters = 4;
+
+int main(int argc, char *argv[]) {
+  if (argc > kMaxNumberParameters + 1) {
+    std::cerr << "\033[1;37mSiMAS:\033[0m \033[1;31mfatal error\033[0m: Too much parameters.\nAborting.\n";
+    return kTooMuchParametersErrorCode;
+  } else if (argc < kMinNumberParameters + 1) {
+    std::cerr << "\033[1;37mSiMAS:\033[0m \033[1;31mfatal error\033[0m: No input file.\nAborting.\n";
+    return kNoInputFileErrorCode;
+  }
+
+  std::string input_file_name;
+  input_file_name = argv[1];
+
+  std::ifstream input_file(input_file_name);
+  if (!input_file.is_open()) {
+    std::cerr << "\033[1;37mSiMAS:\033[0m \033[1;31mfatal error\033[0m: " << input_file_name << ": File doesn't exist.\nAborting.\n";
+    return kInputFileNotFoundErrorCode;
+  }
+
+  if (input_file_name.find(".asm") == input_file_name.npos) {
+    std::cerr << "\033[1;37mSiMAS:\033[0m \033[1;31mfatal error\033[0m: " << input_file_name << ": Invalid extension.\nAborting.\n";
+    return kInvalidInputFileExtensionErrorCode;
+  }
+
+  bool informed_output_file = false;
+  std::string output_file_name;
+  bool print_output = false;
+
+  int option;
+  while ((option = getopt(argc - 1, argv + 1, "po:")) != -1) {
+    switch (option) {
+      case 'p':
+        print_output = true;
+        break;
+      case 'o':
+        informed_output_file = true;
+        output_file_name = optarg;
+        break;
+      case '?':
+        if (optopt == 'o') {
+          fprintf(stderr, "Option -%c requires an argument.\n", optopt);
+        } else if (std::isprint(optopt)) {
+          fprintf(stderr, "Unknown option `-%c'.\n", optopt);
+        } else {
+          fprintf(stderr, "Unknown option character `\\x%x'.\n", optopt);
+        }
+        return 1;
+      default:
+        fprintf(stderr, "Usage: %s <input_file> [-o <output_file>] [-p]\n", argv[0]);
+        return 1;
+    }
+  }
+
+  if (!informed_output_file) {
+    output_file_name = input_file_name;
+    output_file_name.erase(output_file_name.find(".asm"));
+  }
+
+  std::ofstream output_file(output_file_name);
+
+  try {
+    simas::parser::ParseInstructions(input_file, output_file, print_output);
+  } catch (simas::parser::ParserException &e) {
+    std::cerr << "\033[1;37m" << input_file_name << ":" << e.GetLine() << ":\033[0m \033[1;31merror\033[0m: " << e.what() << ".\nAborting.\n";
+    std::remove(output_file_name.c_str());
+    return kParsingErrorCode;
+  }
+
+  return kSucessCode;
+}
