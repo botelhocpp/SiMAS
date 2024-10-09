@@ -8,6 +8,7 @@
 #include <regex>
 #include <stdexcept>
 #include <unordered_map>
+#include <algorithm>
 
 const std::unordered_map<std::string, uint32_t> kRegisterMap = {
     {"$zero", 0},
@@ -64,8 +65,8 @@ uint32_t simas::decoder::DecodeRegister(const std::string& reg) {
   return reg_number;
 }
 
-uint32_t simas::decoder::DecodeImmediate(const std::string& imm, uint32_t size_bits) {
-  uint32_t imm_val = 0;
+int32_t simas::decoder::DecodeImmediate(const std::string& imm, uint32_t size_bits) {
+  int32_t imm_val = 0;
 
   try {
     if (std::strncmp(imm.c_str(), "0x", 2) == 0) {
@@ -81,7 +82,7 @@ uint32_t simas::decoder::DecodeImmediate(const std::string& imm, uint32_t size_b
     throw std::invalid_argument("Invalid immediate");
   }
 
-  const uint32_t imm_max_val = std::pow(2, size_bits) - 1;
+  const int32_t imm_max_val = std::pow(2, size_bits) - 1;
   if (imm_max_val < imm_val) {
     throw std::invalid_argument("Invalid immediate");
   }
@@ -89,7 +90,7 @@ uint32_t simas::decoder::DecodeImmediate(const std::string& imm, uint32_t size_b
   return imm_val;
 }
 
-uint32_t simas::decoder::DecodeInstruction(const std::vector<std::string>& instruction_elements) {
+uint32_t simas::decoder::DecodeInstruction(const std::vector<std::string>& instruction_elements, const std::map<uint32_t, std::string>& program_labels) {
   const instruction::Instruction* instruction_ptr = instruction::GetInstruction(instruction_elements.at(1));
 
   uint32_t number_operands = instruction_elements.size() - 2;
@@ -114,14 +115,31 @@ uint32_t simas::decoder::DecodeInstruction(const std::vector<std::string>& instr
     case instruction::InstructionType::kTypeI:
       instruction_binary |= DecodeRegister(instruction_elements.at(2)) << 16;  // rt
       instruction_binary |= DecodeRegister(instruction_elements.at(3)) << 21;  // rs
-      instruction_binary |= DecodeImmediate(instruction_elements.at(4), 16);
+      
+      if (instruction_ptr->mnemonic == "beq" || instruction_ptr->mnemonic == "bne") {
+        auto it = std::find_if(program_labels.cbegin(), program_labels.cend(), [&](const auto& label) {
+          return label.second == instruction_elements.at(4);
+        });
+        if(it == program_labels.cend()) {
+          throw std::invalid_argument("Invalid label");
+        }
+        instruction_binary |= ((it->first - std::stoi(instruction_elements.at(0)) - 4) >> 2) & 0xFFFF;
+      } else {
+        instruction_binary |= DecodeImmediate(instruction_elements.at(4), 16) & 0xFFFF;
+      }
       break;
 
     case instruction::InstructionType::kTypeJ:
       if (instruction_elements.at(2) == ".") {
         instruction_binary |= std::stoi(instruction_elements.at(0), nullptr, 10) >> 2;
       } else {
-        instruction_binary |= DecodeImmediate(instruction_elements.at(2), 26) >> 2;
+        auto it = std::find_if(program_labels.cbegin(), program_labels.cend(), [&](const auto& label) {
+          return label.second == instruction_elements.at(2);
+        });
+        if(it == program_labels.cend()) {
+          throw std::invalid_argument("Invalid label");
+        }
+        instruction_binary |= ((it->first) >> 2) & 0x3FFFFFF;
       }
       break;
   }

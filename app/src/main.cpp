@@ -18,7 +18,8 @@ constexpr int kTooMuchParametersErrorCode = 1;
 constexpr int kNoInputFileErrorCode = 2;
 constexpr int kInputFileNotFoundErrorCode = 3;
 constexpr int kInvalidInputFileExtensionErrorCode = 4;
-constexpr int kParsingErrorCode = 5;
+constexpr int kInvalidOptionCode = 5;
+constexpr int kParsingErrorCode = 6;
 constexpr int kMinNumberParameters = 1;
 constexpr int kMaxNumberParameters = 4;
 
@@ -67,10 +68,10 @@ int main(int argc, char *argv[]) {
         } else {
           fprintf(stderr, "Unknown option character `\\x%x'.\n", optopt);
         }
-        return 1;
+        return kInvalidOptionCode;
       default:
         fprintf(stderr, "Usage: %s <input_file> [-o <output_file>] [-p]\n", argv[0]);
-        return 1;
+        return kInvalidOptionCode;
     }
   }
 
@@ -80,9 +81,11 @@ int main(int argc, char *argv[]) {
   }
 
   std::ofstream output_file(output_file_name);
-
   try {
-    simas::parser::ParseInstructions(input_file, output_file, print_output);
+    std::map<int, std::vector<std::string>> instructions;
+    std::map<uint32_t, std::string> labels;
+    simas::parser::PreParseFile(input_file, instructions, labels);
+    simas::parser::ParseInstructions(output_file, instructions, labels, print_output);
   } catch (simas::parser::ParserException &e) {
     std::cerr << "\033[1;37m" << input_file_name << ":" << e.GetLine() << ":\033[0m \033[1;31merror\033[0m: " << e.what() << ".\nAborting.\n";
     std::remove(output_file_name.c_str());
