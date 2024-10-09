@@ -11,9 +11,11 @@
 namespace simas {
 namespace parser {
 
-void PreParseFile(std::ifstream& input_file, std::map<int, std::vector<std::string>>& instructions, std::map<uint32_t, std::string>& labels);
+std::vector<std::string> ReadFileToVector(std::ifstream &input_file);
 
-void ParseInstructions(std::ofstream& output_file, std::map<int, std::vector<std::string>>& instructions, std::map<uint32_t, std::string>& labels, bool print_output = true);
+void PreParseFile(std::vector<std::string>& file_contents, std::map<int, std::vector<std::string>>& instructions, std::map<uint32_t, std::string>& labels);
+
+void ParseInstructions(std::ofstream& output_file, std::vector<std::string>& file_contents, std::map<int, std::vector<std::string>>& instructions, std::map<uint32_t, std::string>& labels, bool print_output = true);
 
 }  // namespace parser
 }  // namespace simas

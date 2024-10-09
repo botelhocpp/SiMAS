@@ -15,16 +15,23 @@
 
 const uint32_t kInstructionsInitialAddress = 0x00400000;
 
-void simas::parser::PreParseFile(std::ifstream &input_file, std::map<int, std::vector<std::string>> &instructions, std::map<uint32_t, std::string> &labels) {
+std::vector<std::string> simas::parser::ReadFileToVector(std::ifstream &input_file) {
+  std::vector<std::string> file_contents;
+  
+  std::string file_line;
+  while (std::getline(input_file, file_line)) {
+    file_contents.push_back(file_line);
+  }
+
+  return file_contents;
+}
+
+void simas::parser::PreParseFile(std::vector<std::string>& file_contents, std::map<int, std::vector<std::string>> &instructions, std::map<uint32_t, std::string> &labels) {
   uint32_t address = kInstructionsInitialAddress;
 
-  std::string file_line;
-  int input_file_line = 0;
-  while (std::getline(input_file, file_line)) {
+  for (int line = 0; line < file_contents.size(); line++) {
     try {
-      input_file_line += 1;
-
-      std::string instruction = file_line;
+      std::string instruction = file_contents.at(line);
 
       simas::instruction::CleanInstruction(instruction);
 
@@ -39,22 +46,28 @@ void simas::parser::PreParseFile(std::ifstream &input_file, std::map<int, std::v
       std::vector<std::string> instruction_elements;
       instruction_elements.push_back(std::to_string(address));
       simas::instruction::SplitInstruction(instruction, instruction_elements);
-      instructions[input_file_line] = instruction_elements;
+      instructions[line + 1] = instruction_elements;
 
       address += 4;
     } catch (std::exception &e) {
-      throw ParserException(e.what(), input_file_line);
+      throw ParserException(e.what(), line + 1);
     }
   }
 }
 
-void simas::parser::ParseInstructions(std::ofstream &output_file, std::map<int, std::vector<std::string>> &instructions, std::map<uint32_t, std::string> &labels, bool print_output) {
+void simas::parser::ParseInstructions(std::ofstream &output_file, std::vector<std::string>& file_contents, std::map<int, std::vector<std::string>> &instructions, std::map<uint32_t, std::string> &labels, bool print_output) {
   std::vector<uint32_t> instructions_binaries;
+  uint32_t current_line = 0;
   std::for_each(instructions.begin(), instructions.end(), [&](auto const &instruction) {
     try {
       uint32_t instruction_binary = simas::decoder::DecodeInstruction(instruction.second, labels);
       instructions_binaries.push_back(instruction_binary);
       output_file << std::setfill('0') << std::setw(8) << std::hex << instruction_binary << "\n";
+      
+      if(print_output) {
+        const uint32_t address = std::stoi(instruction.second.front());
+        printf("%04d: %-30s : 0x%08X: 0x%08X\n", (address - kInstructionsInitialAddress)/4, file_contents.at(instruction.first - 1).c_str(), address, instruction_binary);
+      }
     } catch (std::exception &e) {
       throw ParserException(e.what(), instruction.first);
     }

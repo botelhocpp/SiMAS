@@ -82,10 +82,13 @@ int main(int argc, char *argv[]) {
 
   std::ofstream output_file(output_file_name);
   try {
+    std::vector<std::string> file_contents = simas::parser::ReadFileToVector(input_file);
+
     std::map<int, std::vector<std::string>> instructions;
     std::map<uint32_t, std::string> labels;
-    simas::parser::PreParseFile(input_file, instructions, labels);
-    simas::parser::ParseInstructions(output_file, instructions, labels, print_output);
+    simas::parser::PreParseFile(file_contents, instructions, labels);
+
+    simas::parser::ParseInstructions(output_file, file_contents, instructions, labels, print_output);
   } catch (simas::parser::ParserException &e) {
     std::cerr << "\033[1;37m" << input_file_name << ":" << e.GetLine() << ":\033[0m \033[1;31merror\033[0m: " << e.what() << ".\nAborting.\n";
     std::remove(output_file_name.c_str());
