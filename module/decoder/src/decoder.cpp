@@ -65,8 +65,8 @@ uint32_t simas::decoder::DecodeRegister(const std::string& reg) {
   return reg_number;
 }
 
-uint32_t simas::decoder::DecodeImmediate(const std::string& imm, uint32_t size_bits) {
-  uint32_t imm_val = 0;
+int32_t simas::decoder::DecodeImmediate(const std::string& imm, uint32_t size_bits) {
+  int32_t imm_val = 0;
 
   try {
     if (std::strncmp(imm.c_str(), "0x", 2) == 0) {
@@ -82,7 +82,7 @@ uint32_t simas::decoder::DecodeImmediate(const std::string& imm, uint32_t size_b
     throw std::invalid_argument("Invalid immediate");
   }
 
-  const uint32_t imm_max_val = std::pow(2, size_bits) - 1;
+  const int32_t imm_max_val = std::pow(2, size_bits) - 1;
   if (imm_max_val < imm_val) {
     throw std::invalid_argument("Invalid immediate");
   }
@@ -125,7 +125,7 @@ uint32_t simas::decoder::DecodeInstruction(const std::vector<std::string>& instr
         }
         instruction_binary |= ((it->first - std::stoi(instruction_elements.at(0)) - 4) >> 2) & 0xFFFF;
       } else {
-        instruction_binary |= DecodeImmediate(instruction_elements.at(4), 16);
+        instruction_binary |= DecodeImmediate(instruction_elements.at(4), 16) & 0xFFFF;
       }
       break;
 
