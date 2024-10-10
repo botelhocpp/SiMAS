@@ -39,6 +39,15 @@ void simas::parser::PreParseFile(std::vector<std::string>& file_contents, std::m
         continue;
       } else if (instruction.back() == ':') {
         instruction.pop_back();
+        
+        auto it = std::find_if(labels.cbegin(), labels.cend(), [&](auto const &label) {
+          return label.second == instruction;
+        });
+
+        if(it != labels.cend()) {
+          throw std::invalid_argument("Duplicated label '" + it->second + "'");
+        }
+
         labels[address] = instruction;
         continue;
       }
@@ -66,7 +75,7 @@ void simas::parser::ParseInstructions(std::ofstream &output_file, std::vector<st
       
       if(print_output) {
         const uint32_t address = std::stoi(instruction.second.front());
-        printf("%04d: %-30s : 0x%08X: 0x%08X\n", (address - kInstructionsInitialAddress)/4, file_contents.at(instruction.first - 1).c_str(), address, instruction_binary);
+        std::printf("%04d: %-30s : 0x%08X: 0x%08X\n", (address - kInstructionsInitialAddress)/4, file_contents.at(instruction.first - 1).c_str(), address, instruction_binary);
       }
     } catch (std::exception &e) {
       throw ParserException(e.what(), instruction.first);

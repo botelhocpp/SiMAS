@@ -17,4 +17,5 @@ target_link_libraries(${simas_executable} LINK_PUBLIC
     simas_module_instruction
     simas_module_decoder
     simas_module_parser
+    simas_utils_getopt
 )

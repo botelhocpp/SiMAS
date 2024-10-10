@@ -40,13 +40,14 @@ void simas::instruction::SplitInstruction(const std::string& line, std::vector<s
 }
 
 const simas::instruction::Instruction* simas::instruction::GetInstruction(const std::string& mnemonic) {
-  const Instruction* instruction = std::find_if(std::begin(instructions::kInstructionList), std::end(instructions::kInstructionList),
+  const auto inst_end = std::cend(instructions::kInstructionList);
+  const Instruction* instruction = std::find_if(std::cbegin(instructions::kInstructionList), inst_end,
                                                 [&](const auto& instruction) {
                                                   return mnemonic == instruction.mnemonic;
                                                 });
 
-  if (!instruction) {
-    throw std::invalid_argument("Invalid mnemonic");
+  if (instruction == inst_end) {
+    throw std::invalid_argument("Invalid mnemonic '" + mnemonic + "'");
   }
 
   return instruction;

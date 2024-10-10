@@ -1,8 +1,6 @@
 // Copyright (c) 2024 SiMAS
 // All rights reserved
 
-#include <unistd.h>
-
 #include <fstream>
 #include <iostream>
 #include <stdexcept>
@@ -12,6 +10,10 @@
 #include "module/instruction/include/instruction.hpp"
 #include "module/parser/include/parser.hpp"
 #include "module/parser/include/parser_exception.hpp"
+
+extern "C" {
+#include "utils/getopt/include/getopt.h"
+}
 
 constexpr int kSucessCode = 0;
 constexpr int kTooMuchParametersErrorCode = 1;
@@ -62,15 +64,15 @@ int main(int argc, char *argv[]) {
         break;
       case '?':
         if (optopt == 'o') {
-          fprintf(stderr, "Option -%c requires an argument.\n", optopt);
+          std::fprintf(stderr, "Option -%c requires an argument.\n", optopt);
         } else if (std::isprint(optopt)) {
-          fprintf(stderr, "Unknown option `-%c'.\n", optopt);
+          std::fprintf(stderr, "Unknown option `-%c'.\n", optopt);
         } else {
-          fprintf(stderr, "Unknown option character `\\x%x'.\n", optopt);
+          std::fprintf(stderr, "Unknown option character `\\x%x'.\n", optopt);
         }
         return kInvalidOptionCode;
       default:
-        fprintf(stderr, "Usage: %s <input_file> [-o <output_file>] [-p]\n", argv[0]);
+        std::fprintf(stderr, "Usage: %s <input_file> [-o <output_file>] [-p]\n", argv[0]);
         return kInvalidOptionCode;
     }
   }
