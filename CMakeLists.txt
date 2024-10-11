@@ -2,6 +2,7 @@
 # All rights reserved
 
 cmake_minimum_required(VERSION ${CMAKE_VERSION})
+
 project("Simple MIPS Assembler" C CXX)
 
 set(simas_dir ${PROJECT_SOURCE_DIR})

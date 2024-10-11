@@ -25,6 +25,7 @@ const instruction::Instruction kInstructionList[] = {
     {"nor",  0x00000027, 3, instruction::InstructionType::kTypeR},
     {"slt",  0x0000002A, 3, instruction::InstructionType::kTypeR},
     {"addi", 0x20000000, 3, instruction::InstructionType::kTypeI},
+    {"stli", 0x28000000, 3, instruction::InstructionType::kTypeI},
     {"andi", 0x30000000, 3, instruction::InstructionType::kTypeI},
     {"ori",  0x34000000, 3, instruction::InstructionType::kTypeI},
     {"xori", 0x38000000, 3, instruction::InstructionType::kTypeI},

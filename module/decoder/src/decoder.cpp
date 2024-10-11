@@ -160,12 +160,15 @@ uint32_t simas::decoder::DecodeInstruction(const std::vector<std::string>& instr
       }
       break;
 
-    case instruction::InstructionType::kTypeI:
+    case instruction::InstructionType::kTypeI:{
+      bool is_bgtz_or_blez = instruction_ptr->mnemonic == "bgtz" || instruction_ptr->mnemonic == "blez";
+      
       if (instruction_ptr->mnemonic != "lui") {
-        instruction_binary |= DecodeRegister(instruction_elements.at(3)) << 21;  // rs
+        int reg_index = is_bgtz_or_blez? 2 : 3;
+        instruction_binary |= DecodeRegister(instruction_elements.at(reg_index)) << 21;  // rs
       }
 
-      if (instruction_ptr->mnemonic == "bgtz" || instruction_ptr->mnemonic == "blez") {
+      if (is_bgtz_or_blez) {
         instruction_binary |= CalculateLabelAddress(instruction_elements.at(3), instruction_elements.at(0), program_labels, false);
       } else {
         instruction_binary |= DecodeRegister(instruction_elements.at(2)) << 16;  // rt
@@ -178,6 +181,7 @@ uint32_t simas::decoder::DecodeInstruction(const std::vector<std::string>& instr
       }
 
       break;
+    }
 
     case instruction::InstructionType::kTypeJ:
       instruction_binary |= CalculateLabelAddress(instruction_elements.at(2), instruction_elements.at(0), program_labels, true);
