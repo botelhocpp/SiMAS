@@ -28,7 +28,7 @@ void simas::instruction::SplitInstruction(const std::string& line, std::vector<s
     instruction_elements.push_back(token);
   }
 
-  if (instruction_elements.at(1) == "sw" || instruction_elements.at(1) == "lw") {
+  if (instruction_elements.at(1) == "sw" || instruction_elements.at(1) == "lw" || instruction_elements.at(1) == "lb" || instruction_elements.at(1) == "lbu"  || instruction_elements.at(1) == "sb") {
     char reg[10];
     char imm[10];
 
